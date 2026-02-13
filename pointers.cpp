@@ -1,6 +1,8 @@
 // compile: g++ -std=c++14 -o pointers pointers.cpp
 #include <iostream>
 #include <string>
+#include <iomanip> //I was coding on Windows, so this is here for that. I think this comes pre-downloaded in Linux.
+#include <cstring>
 
 typedef struct Student {
     int id;
@@ -18,40 +20,162 @@ int main(int argc, char **argv)
 {
     Student student;
     double average;
+    std::string input;
 
-    // Sequence of user input -> store in fields of `student`
+    // Student ID
+    student.id = promptInt(
+        "Please enter the student's id number: ",
+        0,
+        999999999
+    );
 
-    // Call `CalculateStudentAverage(???, ???)`
-    // Output `average`
+    std::cout << std::endl;
+
+    std::cout << "Please enter the student's first name: ";
+    std::getline(std::cin, input);
+    student.f_name = new char[input.length() + 1];
+    std::strcpy(student.f_name, input.c_str());
+
+    std::cout << std::endl;
+
+    std::cout << "Please enter the student's last name: ";
+    std::getline(std::cin, input);
+    student.l_name = new char[input.length() + 1];
+    std::strcpy(student.l_name, input.c_str());
+
+    std::cout << std::endl;
+
+    student.n_assignments = promptInt(
+        "Please enter how many assignments were graded: ",
+        1,
+        134217728
+    );
+
+    student.grades = new double[student.n_assignments];
+
+    std::cout << std::endl << std::endl;
+
+    for (int i = 0; i < student.n_assignments; i++) {
+        std::string message =
+            "Please enter grade for assignment " +
+            std::to_string(i) + ": ";
+
+        student.grades[i] = promptDouble(message, 0.0, 1000.0);
+        std::cout << std::endl;
+    }
+
+    calculateStudentAverage(&student, &average);
+
+    std::cout << std::endl;
+    std::cout << "Student: "
+              << student.f_name << " "
+              << student.l_name << " ["
+              << student.id << "]" << std::endl;
+
+    std::cout << std::endl;
+    std::cout << "  Average grade: "
+              << std::fixed << std::setprecision(1)
+              << average << std::endl;
+
+    delete[] student.f_name;
+    delete[] student.l_name;
+    delete[] student.grades;
 
     return 0;
 }
 
-/*
-   message: text to output as the prompt
-   min: minimum value to accept as a valid int
-   max: maximum value to accept as a valid int
-*/
 int promptInt(std::string message, int min, int max)
 {
-    // Code to prompt user for an int
+    std::string input;
+
+    while (true) {
+        std::cout << message;
+        std::getline(std::cin, input);
+
+        if (input.length() == 0) {
+            std::cout << "Sorry, I cannot understand your answer" << std::endl;
+            continue;
+        }
+
+        bool valid = true;
+        for (char c : input) {
+            if (!isdigit(c)) {
+                valid = false;
+                break;
+            }
+        }
+
+        if (!valid) {
+            std::cout << "Sorry, I cannot understand your answer" << std::endl;
+            continue;
+        }
+
+        long value = std::stol(input);
+
+        if (value < min || value > max) {
+            std::cout << "Sorry, I cannot understand your answer" << std::endl;
+            continue;
+        }
+
+        return (int)value;
+    }
 }
 
-/*
-   message: text to output as the prompt
-   min: minimum value to accept as a valid double
-   max: maximum value to accept as a valid double
-*/
 double promptDouble(std::string message, double min, double max)
 {
-    // Code to prompt user for a double
+    std::string input;
+
+    while (true) {
+        std::cout << message;
+        std::getline(std::cin, input);
+
+        if (input.length() == 0) {
+            std::cout << "Sorry, I cannot understand your answer" << std::endl;
+            continue;
+        }
+
+        bool valid = true;
+        bool decimalSeen = false;
+
+        for (char c : input) {
+            if (c == '.') {
+                if (decimalSeen) {
+                    valid = false;
+                    break;
+                }
+                decimalSeen = true;
+            }
+            else if (!isdigit(c)) {
+                valid = false;
+                break;
+            }
+        }
+
+        if (!valid) {
+            std::cout << "Sorry, I cannot understand your answer" << std::endl;
+            continue;
+        }
+
+        double value = std::stod(input);
+
+        if (value < min || value > max) {
+            std::cout << "Sorry, I cannot understand your answer" << std::endl;
+            continue;
+        }
+
+        return value;
+    }
 }
 
-/*
-   object: pointer to anything - your choice! (but choose something that will be helpful)
-   avg: pointer to a double (can store a value here)
-*/
 void calculateStudentAverage(void *object, double *avg)
 {
-    // Code to calculate and store average grade
+    Student *student = (Student *)object;
+
+    double sum = 0.0;
+
+    for (int i = 0; i < (*student).n_assignments; i++) {
+        sum += (*student).grades[i];
+    }
+
+    *avg = sum / (*student).n_assignments;
 }
